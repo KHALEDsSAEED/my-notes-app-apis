@@ -12,7 +12,7 @@ const swaggerOptions = {
         },
         servers: [
             {
-                url: 'https://my-notes-app-apis.onrender.com',
+                url: 'https://my-notes-app-apis.onrender.com/',
                 description: 'Production server',
             },
             {
