@@ -21,7 +21,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /auth/signup:
+ * /api/auth/signup:
  *   post:
  *     summary: Register a new user
  *     description: Registers a new user with the provided details. Returns a success message if the user is created successfully or an error if the email already exists.
@@ -131,7 +131,7 @@ router.post('/signup', signup);
 
 /**
 * @swagger
-* /auth/verify-email:
+* /api/auth/verify-email:
 *   post:
 *     summary: Verify user email
 *     description: Verifies the user's email using the provided verification code. Returns success if the email is verified or an error if the code is invalid or expired.

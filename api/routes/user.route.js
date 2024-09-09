@@ -11,7 +11,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /user/get-user:
+ * /api/user/get-user:
  *   get:
  *     summary: Retrieve user information
  *     description: Fetches the user details based on the authenticated user's ID. Returns user data if found or an error if not. This route is protected and requires a valid token in the Authorization header.
@@ -107,7 +107,7 @@ router.get('/get-user', getUser);
 
 /**
  * @swagger
- * /user/update-user:
+ * /api/user/update-user:
  *   put:
  *     summary: Update user information
  *     description: Updates the user details based on the authenticated user's ID. Returns updated user data or an error if the user is not found. This route is protected and requires a valid token in the Authorization header.
@@ -258,7 +258,7 @@ router.put('/update-user', updateUser);
 
 /**
  * @swagger
- * /user/delete-user:
+ * /api/user/delete-user:
  *   delete:
  *     summary: Delete a user
  *     description: Deletes the user based on the authenticated user's ID. Returns a success message if the user is deleted or an error if the user is not found. This route is protected and requires a valid token in the Authorization header.
