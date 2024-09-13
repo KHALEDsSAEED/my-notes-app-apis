@@ -370,7 +370,8 @@ export const signout = async (req, res, next) => {
 };
 
 export const refreshAccessToken = async (req, res, next) => {
-    const { refreshToken } = req.cookies;
+    // Get the refresh token from the Authorization header
+    const refreshToken = req.headers['authorization']?.split(' ')[1];
 
     if (!refreshToken) {
         return next(errorHandler(401, 'Refresh token not provided'));
