@@ -1,4 +1,5 @@
 import Note from '../models/note.model.js';
+import User from '../models/user.model.js';
 import { errorHandler } from '../utils/error.js';
 
 export const createNote = async (req, res, next) => {
@@ -10,17 +11,29 @@ export const createNote = async (req, res, next) => {
     }
 
     try {
-        const existingNote = await Note.findOne({ title, user: userId });
+        // Fetch the user's email from the database using the userId
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                statusCode: 404,
+                message: 'User not found',
+            });
+        }
+
+        // Use the user's email to check for existing notes
+        const existingNote = await Note.findOne({ title, user: user.email });
 
         if (existingNote) {
             return next(errorHandler(400, 'A note with this title already exists'));
         }
 
+        // Create the new note with the user's email
         const newNote = new Note({
             category,
             title,
             text,
-            user: userId, // Set the userId from the token
+            user: user.email, // Set the user's email instead of userId
         });
 
         const savedNote = await newNote.save();
@@ -34,12 +47,25 @@ export const createNote = async (req, res, next) => {
     }
 };
 
+
 // Get all notes from the database for a specific user
 export const getNotes = async (req, res, next) => {
     const userId = req.user.userId; // Get the userId from the verified token
 
     try {
-        const notes = await Note.find({ user: userId });
+        // Fetch the user's email from the database using the userId
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                statusCode: 404,
+                message: 'User not found',
+            });
+        }
+
+        // Now use the user's email to fetch the notes
+        const notes = await Note.find({ user: user.email });
+
         res.status(200).json({
             statusCode: 200,
             message: 'Notes fetched successfully',
@@ -50,47 +76,79 @@ export const getNotes = async (req, res, next) => {
     }
 };
 
-// update a note in the database by its id
 export const updateNote = async (req, res, next) => {
     // Get the note id from the request parameters
     const { id } = req.params;
 
     // Get the title, text, and category from the request body
     const { title, text, category } = req.body;
+    const userId = req.user.userId; // Get the userId from the verified token
 
     try {
-        // Find the note by its id and update the title, text, and category
+        // Fetch the user's email from the database using the userId
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                statusCode: 404,
+                message: 'User not found',
+            });
+        }
+
+        // Find the note by its id and check if it belongs to the user
+        const note = await Note.findById(id);
+
+        if (!note || note.user !== user.email) {
+            return next(errorHandler(404, 'Note not found or not authorized to update'));
+        }
+
+        // Update the note if it belongs to the user
         const updatedNote = await Note.findByIdAndUpdate(
             id,
             { title, text, category },
             { new: true }
         );
 
-        // Return an error response if the note is not found
-        if (!updatedNote) {
-            return next(errorHandler(404, 'Note not found'));
-        }
-
-        // Return the updated note as a response
-        res.status(200).json(updatedNote);
+        res.status(200).json({
+            statusCode: 200,
+            message: 'Note updated successfully',
+            data: updatedNote
+        });
     } catch (err) {
         next(errorHandler(500, 'Server error'));
     }
 };
 
-// Delete a note from the database by its id
+
 export const deleteNote = async (req, res, next) => {
     const { id } = req.params;
+    const userId = req.user.userId; // Get the userId from the verified token
 
     try {
-        // Find the note by its id and delete it
-        const deletedNote = await Note.findByIdAndDelete(id);
+        // Fetch the user's email from the database using the userId
+        const user = await User.findById(userId);
 
-        if (!deletedNote) {
-            return next(errorHandler(404, 'Note not found'));
+        if (!user) {
+            return res.status(404).json({
+                statusCode: 404,
+                message: 'User not found',
+            });
         }
 
-        res.status(200).json({ message: 'Note deleted successfully' });
+        // Find the note by its id and check if it belongs to the user
+        const note = await Note.findById(id);
+
+        if (!note || note.user !== user.email) {
+            return next(errorHandler(404, 'Note not found or not authorized to delete'));
+        }
+
+        // Delete the note if it belongs to the user
+        const deletedNote = await Note.findByIdAndDelete(id);
+
+        res.status(200).json({
+            statusCode: 200,
+            message: 'Note deleted successfully',
+        });
     } catch (err) {
         next(errorHandler(500, 'Server error'));
     }
