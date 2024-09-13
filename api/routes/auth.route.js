@@ -831,8 +831,16 @@ router.post('/signout', signout);
  * /api/auth/refresh-token:
  *   post:
  *     summary: Refresh access token
- *     description: Refreshes the access token using a valid refresh token provided in cookies. This route issues a new access token if the refresh token is valid.
+ *     description: Refreshes the access token using a valid refresh token provided in the `Authorization` header. This route issues a new access token if the refresh token is valid.
  *     tags: [Auth]
+ *     parameters:
+ *       - in: header
+ *         name: Authorization
+ *         required: true
+ *         description: Bearer token to authenticate the request.
+ *         schema:
+ *           type: string
+ *           example: "Bearer <refresh_token>"
  *     responses:
  *       200:
  *         description: Access token refreshed successfully
@@ -887,5 +895,6 @@ router.post('/signout', signout);
  *                   message: "Invalid or expired refresh token"
  */
 router.post("/refresh-token", refreshAccessToken);
+
 
 export default router;
