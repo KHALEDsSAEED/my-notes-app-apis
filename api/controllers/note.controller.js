@@ -77,17 +77,13 @@ export const getNotes = async (req, res, next) => {
 };
 
 export const updateNote = async (req, res, next) => {
-    // Get the note id from the request parameters
-    const { id } = req.params;
-
-    // Get the title, text, and category from the request body
-    const { title, text, category } = req.body;
+    const { id } = req.params; // Note id
+    const { title, text, category } = req.body; // Fields to update
     const userId = req.user.userId; // Get the userId from the verified token
 
     try {
         // Fetch the user's email from the database using the userId
         const user = await User.findById(userId);
-
         if (!user) {
             return res.status(404).json({
                 statusCode: 404,
@@ -95,24 +91,34 @@ export const updateNote = async (req, res, next) => {
             });
         }
 
-        // Find the note by its id and check if it belongs to the user
+        // Find the note by id and ensure it belongs to the user
         const note = await Note.findById(id);
-
         if (!note || note.user !== user.email) {
             return next(errorHandler(404, 'Note not found or not authorized to update'));
+        }
+
+        // Check if another note with the same title exists for the user
+        const existingNote = await Note.findOne({
+            title,
+            user: user.email,
+            _id: { $ne: id } // Exclude the current note from the search
+        });
+
+        if (existingNote) {
+            return next(errorHandler(400, 'A note with this title already exists'));
         }
 
         // Update the note if it belongs to the user
         const updatedNote = await Note.findByIdAndUpdate(
             id,
             { title, text, category },
-            { new: true }
+            { new: true } // Return the updated document
         );
 
         res.status(200).json({
             statusCode: 200,
             message: 'Note updated successfully',
-            data: updatedNote
+            data: updatedNote,
         });
     } catch (err) {
         next(errorHandler(500, 'Server error'));
